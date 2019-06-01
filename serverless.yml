@@ -1,0 +1,40 @@
+service:
+  name: retro-issue-slack-bot
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment: ${file(./env.yml):${opt:stage, self:provider.stage}}
+  region: ap-northeast-1
+
+functions:
+  slack-events:
+    timeout: 3
+    handler: src/events.handler
+    events:
+      - http:
+          path: slack-events
+          method: post
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  # Log all events to CloudWatch
+  slack_enable_logging: true
+
+  # The path used to post Slack events to
+  slack_event_path: slack
+
+  # The path used to install the Slack App
+  slack_install_path: slack
+
+  # The path to redirect to after an install
+  slack_install_redirect: https://slack.com
+
+  serverless-offline:
+    port: 3001
+  webpack:
+    includeModules: true
+  

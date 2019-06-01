@@ -1,0 +1,26 @@
+{
+  "name": "retro-issue-slack-bot",
+  "version": "1.0.0",
+  "description": "A slack bot for retro things",
+  "main": "index.js",
+  "author": "jessehsiu",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^16.27.3",
+    "@slack/events-api": "^2.2.0",
+    "@slack/web-api": "^5.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "babel-loader": "^8.0.4",
+    "husky": "^1.1.4",
+    "lint-staged": "^8.0.5",
+    "prettier": "^1.15.2",
+    "serverless": "^1.33.1",
+    "serverless-offline": "^4.10.6",
+    "serverless-webpack": "^5.3.0",
+    "webpack": "^4.26.0",
+    "webpack-node-externals": "^1.7.2"
+  }
+}
