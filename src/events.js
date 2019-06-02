@@ -46,17 +46,18 @@ export const handler = async (event, context, callback) => {
                 });
             } else {
                 // create milestone
-                await createMilestone(new Date().toLocaleDateString())
+                await createMilestone(new Date().toLocaleString())
 
                 // notify every member in channel
                 const memberIds = await getAllMembersIdFromSlack(channe_id)
-                for (const member_id of memberIds) {
-                    const dm_resp = await web.im.open({ user: member_id })
-                    await web.chat.postMessage({
-                        text: 'A new retro just started',
-                        channel: dm_resp.channel['id'],
-                    });
-                }
+                await notifySlackMembers(memberIds, {
+                    text: 'A new retro just started, please start submiting your retro',
+                })
+
+                await web.chat.postMessage({
+                    text: `A new retro just started, please start submiting your retro`,
+                    channel: channe_id,
+                });
             }
         } else if (message_body['text'].includes('notify')) {
             const opened_milestone = await getLatestMilestone()
@@ -68,6 +69,12 @@ export const handler = async (event, context, callback) => {
             await notifySlackMembers(members_not_retroed, {
                 text: 'Please submit your retro.',
             })
+
+            const mention_member_str = members_not_retroed.reduce((acc, cur) => acc + `<@${cur}> `, '');
+            await web.chat.postMessage({
+                text: `${mention_member_str}: please submit your retro!`,
+                channel: channe_id,
+            });
         } else if (message_body['text'].includes('stop')) {
             const opened_milestone = await getLatestMilestone()
             await stopMilestone(opened_milestone.number)
@@ -82,6 +89,7 @@ export const handler = async (event, context, callback) => {
                     { text: "start: start a retro" },
                     { text: "notify: notify members that not record a retro yet" },
                     { text: "stop: stop a retro" },
+                    { text: "setsm: set scrum master" },
                 ],
                 channel: channe_id,
             });
@@ -95,7 +103,31 @@ export const handler = async (event, context, callback) => {
     }
 
     if (message_body['type'] == 'message') {
-        console.log(message_body)
+        const channel_id = message_body['channel']
+        if (message_body['text'].includes(':+1:')) {
+            const opened_milestone = await getLatestMilestone()
+            const resp = await createIssueInMilestoneAndMemberId(message_body['text'], opened_milestone.number, message_body['user'], 'good')
+            await web.chat.postMessage({
+                text: `Retro recorded, issue link: ${resp.data.html_url}`,
+                channel: channel_id,
+            });
+        } else if (message_body['text'].includes(':-1:')) {
+            const opened_milestone = await getLatestMilestone()
+            const resp = await createIssueInMilestoneAndMemberId(message_body['text'], opened_milestone.number, message_body['user'], 'bad')
+            await web.chat.postMessage({
+                text: `Retro recorded, issue link: ${resp.data.html_url}`,
+                channel: channel_id,
+            });
+        } else {
+            // await web.chat.postMessage({
+            //     text: `someone said: ${message_body['text']}`,
+            //     channel: channel_id,
+            // });
+            await web.chat.postMessage({
+                text: `Secret retro recorded, sent message to scrum master! Thanks! (If you want to record normal retro, please submit with :+1: or :-1:)!`,
+                channel: channel_id,
+            });
+        }
         const response = {
             statusCode: 200,
             body: JSON.stringify({}),

@@ -15,11 +15,11 @@ export const getLatestMilestone = async function get() {
     return opened_milestone.data[0]
 }
 
-export const createMilestone = async function get(name) {
+export const createMilestone = async function get(title) {
     await githubClientWithAuth.issues.createMilestone({
         owner: process.env.github_issue_repo_owner,
         repo: process.env.github_issue_repo_name,
-        title: name
+        title: title
     })
 }
 
@@ -54,9 +54,9 @@ export const getMembersRetroedInMilestone = async function get(milestoneId) {
     return Array.from(retroed_member_set)
 }
 
-export const createIssueInMilestoneAndMemberId = async function get(content, milestoneId, memberId) {
+export const createIssueInMilestoneAndMemberId = async function get(content, milestoneId, memberId, label) {
 
-    let title = content.replace(/(?:\r\n|\r|\n)/g, '');
+    let title = content.replace(/(?:\r\n|\r|\n)/g, '').replace(':+1:', '').replace(':-1:', '');
     if (title.length > 30) {
         title = title.slice(0, 30)
     }
@@ -73,6 +73,7 @@ export const createIssueInMilestoneAndMemberId = async function get(content, mil
         milestone: milestoneId,
         title: title,
         body: body,
+        labels: [label]
     })
     
     return new_issue
