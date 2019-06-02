@@ -9,7 +9,7 @@ provider:
 
 functions:
   slack-events:
-    timeout: 3
+    timeout: 30
     handler: src/events.handler
     events:
       - http:
