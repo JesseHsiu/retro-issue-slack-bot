@@ -78,3 +78,11 @@ export const createIssueInMilestoneAndMemberId = async function get(content, mil
     
     return new_issue
 }
+
+export default {
+    getLatestMilestone,
+    createMilestone,
+    stopMilestone,
+    getMembersRetroedInMilestone,
+    createIssueInMilestoneAndMemberId,
+}
