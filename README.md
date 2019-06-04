@@ -3,14 +3,14 @@ A slack bot for retro &amp; creating github issue in milestone.
 
 SM(Scrum master) can start/stop/notify members to submit their retro in channel.
 Members within the channel can submit their retro in slack bot DM.
-All retro issues are created & saved in Github repo with an milestone name.
+All retro issues are created & saved in Github repo issue with a milestone name.
 
 ![螢幕快照 2019-06-04 下午10 28 49](https://user-images.githubusercontent.com/7819967/58888028-48fd4200-8719-11e9-8d72-a222512ff9ea.png)
 
 ## Why creating this?
 We love sprint retrospective for improving entire scrum team. :+1:
 
-In old ways, I will firstly create a google sheet for members to submitting retros.
+In old ways, I will firstly create a google sheet for members to submit retros.
 SM needs to look at responses in google sheet & notify memeber's that has not submitted.
 Also, it's hard for tracking all the retro issues in different sheet.
 
@@ -40,8 +40,9 @@ Retro recorded, issue link: https://github.com/<repo-owner>/<repo-name>/issues/<
 1. Open an AWS account
 2. Install serverless (https://serverless.com/) and setup AWS related config
 3. Create a SNS topic in AWS console
-4. `sls deploy`
-5. Setup in Slack!
+4. Setup in Slack workspace
+4. Change params in file `env.yml` & `sls deploy`
+
 
 ## Missing something?
 - Creating Github label when first installation
