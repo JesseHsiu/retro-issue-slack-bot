@@ -57,14 +57,20 @@ export const slackReactor = async (event, context, callback) => {
             });
         } else {
             const opened_milestone = await githubUtil.getLatestMilestone();
-            const resp = await githubUtil.createIssueInMilestoneAndMemberId(
-                message_body['text'],
-                opened_milestone.number,
-                message_body['user'],
-                tag)
-            await slackUtil.sendMessage(channelId, {
-                text: `Retro recorded, issue link: ${resp.data.html_url}`,
-            })
+            if (!opened_milestone) {
+                await slackUtil.sendMessage(channelId, {
+                    text: `There is no opened retro. Please contact SM.`,
+                });
+            } else {
+                const resp = await githubUtil.createIssueInMilestoneAndMemberId(
+                    message_body['text'],
+                    opened_milestone.number,
+                    message_body['user'],
+                    tag)
+                await slackUtil.sendMessage(channelId, {
+                    text: `Retro recorded, issue link: ${resp.data.html_url}`,
+                })
+            }
         }
 
         callback(null, {
@@ -100,48 +106,53 @@ export const slackReactor = async (event, context, callback) => {
                 // notify every member in channel
                 const memberIds = await slackUtil.getAllMembersIdFromSlack(channelId)
                 await slackUtil.notifySlackMembers(memberIds, {
-                    text: 'A new retro just started, please start submiting your retro',
+                    text: 'A new retro just started, please start submiting your retro. Please submit with with :+1: or :-1:, thanks a lot!',
                 })
 
                 await slackUtil.sendMessage(channelId, {
-                    text: `A new retro just started, please start submiting your retro`,
+                    text: `A new retro just started, please start submiting your retro.`,
                 });
             }
         } else if (message_body['text'].includes('notify')) {
             const opened_milestone = await githubUtil.getLatestMilestone()
-
             if (!opened_milestone) {
                 await slackUtil.sendMessage(channelId, {
                     text: 'There is no a retro event here. Please start first.',
                 });
-            }
-
-            const retroed_members = await githubUtil.getMembersRetroedInMilestone(opened_milestone.number)
-            const all_slack_members = await slackUtil.getAllMembersIdFromSlack(channelId)
-            const members_not_retroed = all_slack_members.filter((value) => {
-                return !retroed_members.includes(value)
-            })
-
-            if (members_not_retroed.length > 0) {
-                await slackUtil.notifySlackMembers(members_not_retroed, {
-                    text: 'Please submit your retro.',
+            } else {
+                const retroed_members = await githubUtil.getMembersRetroedInMilestone(opened_milestone.number)
+                const all_slack_members = await slackUtil.getAllMembersIdFromSlack(channelId)
+                const members_not_retroed = all_slack_members.filter((value) => {
+                    return !retroed_members.includes(value)
                 })
 
-                const mention_member_str = members_not_retroed.reduce((acc, cur) => acc + `<@${cur}> `, '');
-                await slackUtil.sendMessage(channelId, {
-                    text: `${mention_member_str}: please submit your retro!`,
-                });
-            } else {
-                await slackUtil.sendMessage(channelId, {
-                    text: `All record receive! No need to notify`,
-                });
+                if (members_not_retroed.length > 0) {
+                    await slackUtil.notifySlackMembers(members_not_retroed, {
+                        text: 'Please submit your retro.',
+                    })
+
+                    const mention_member_str = members_not_retroed.reduce((acc, cur) => acc + `<@${cur}> `, '');
+                    await slackUtil.sendMessage(channelId, {
+                        text: `${mention_member_str}: please submit your retro!`,
+                    });
+                } else {
+                    await slackUtil.sendMessage(channelId, {
+                        text: `All record received! No need to notify.`,
+                    });
+                }
             }
         } else if (message_body['text'].includes('stop')) {
             const opened_milestone = await githubUtil.getLatestMilestone()
-            await githubUtil.stopMilestone(opened_milestone.number)
-            await slackUtil.sendMessage(channelId, {
-                text: 'Retro has concluded, please go to Github see the result.',
-            });
+            if (!opened_milestone) {
+                await slackUtil.sendMessage(channelId, {
+                    text: `There is no opened retro, please start first.`,
+                });
+            } else {
+                await githubUtil.stopMilestone(opened_milestone.number)
+                await slackUtil.sendMessage(channelId, {
+                    text: 'Retro has concluded, please go to Github see the result.',
+                });
+            }
         } else {
             await slackUtil.sendMessage(channelId, {
                 text: 'I cannot recognize your command. Please try the followings',
