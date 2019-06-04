@@ -1,16 +1,16 @@
 service:
   name: retro-issue-slack-bot
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - SNS:Publish
 
 provider:
   name: aws
   runtime: nodejs8.10
   environment: ${file(./env.yml):${opt:stage, self:provider.stage}}
   region: ap-northeast-1
-
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - SNS:Publish
+      Resource: "*"
 functions:
   slack-events:
     timeout: 5
@@ -23,7 +23,7 @@ functions:
     timeout: 30
     handler: src/events.slackReactor
     events:
-        - sns: arn:aws:sns:${self:provider.region}:872242893131:${opt:stage, 'dev'}-retro-issue-slack-notify
+      - sns: arn:aws:sns:${self:provider.region}:${self:provider.environment.aws_account_id}:${opt:stage, 'dev'}-retro-issue-slack-notify
 
 plugins:
   - serverless-webpack

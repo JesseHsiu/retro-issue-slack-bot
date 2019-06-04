@@ -29,7 +29,7 @@ export const slackEventHandler = async (event, context, callback) => {
     const sns = new SNS({});
     await sns.publish({
         Message: event.body,
-        TopicArn: `arn:aws:sns:ap-northeast-1:872242893131:${process.env.stageName}-retro-issue-slack-notify`
+        TopicArn: `arn:aws:sns:${process.env.AWS_REGION}:${process.env.aws_account_id}:${process.env.stageName}-retro-issue-slack-notify`
     }).promise();
 
     callback(null, {
