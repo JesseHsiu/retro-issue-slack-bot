@@ -1,7 +1,18 @@
+import { SNS } from "aws-sdk";
 import githubUtil from './utils/github';
 import slackUtil from './utils/slack';
 
-export const handler = async (event, context, callback) => {
+export const slackEventHandler = async (event, context, callback) => {
+    try {
+        slackUtil.verifyWithEvent(event)
+    } catch (error) {
+        callback(null, {
+            statusCode: 404,
+            body: JSON.stringify({}),
+        });
+        return;
+    }
+
     // response to slack verification
     const event_body = JSON.parse(event.body)
     if (event_body['type'] == 'url_verification') {
@@ -14,8 +25,22 @@ export const handler = async (event, context, callback) => {
         return;
     }
 
+    // send to sns for further processing
+    const sns = new SNS({});
+    await sns.publish({
+        Message: event.body,
+        TopicArn: `arn:aws:sns:ap-northeast-1:872242893131:${process.env.stageName}-retro-issue-slack-notify`
+    }).promise();
+
+    callback(null, {
+        statusCode: 200,
+        body: JSON.stringify({}),
+    });
+};
+
+export const slackReactor = async (event, context, callback) => {
     // get message & record retro
-    const message_body = event_body['event']
+    const message_body = JSON.parse(event.Records[0].Sns.Message)['event'];
     if (message_body['type'] == 'message' & message_body['subtype'] != 'bot_message') {
         const channelId = message_body['channel']
 
@@ -77,7 +102,7 @@ export const handler = async (event, context, callback) => {
                 await slackUtil.notifySlackMembers(memberIds, {
                     text: 'A new retro just started, please start submiting your retro',
                 })
-                
+
                 await slackUtil.sendMessage(channelId, {
                     text: `A new retro just started, please start submiting your retro`,
                 });
@@ -135,8 +160,8 @@ export const handler = async (event, context, callback) => {
     }
 
     callback(null, {
-        statusCode: 404,
+        statusCode: 200,
         body: JSON.stringify({}),
     });
     return;
-};
+}

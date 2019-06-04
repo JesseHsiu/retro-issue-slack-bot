@@ -1,5 +1,9 @@
 service:
   name: retro-issue-slack-bot
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - SNS:Publish
 
 provider:
   name: aws
@@ -9,30 +13,23 @@ provider:
 
 functions:
   slack-events:
-    timeout: 30
-    handler: src/events.handler
+    timeout: 5
+    handler: src/events.slackEventHandler
     events:
       - http:
           path: slack-events
           method: post
+  slack-events-reactor:
+    timeout: 30
+    handler: src/events.slackReactor
+    events:
+        - sns: arn:aws:sns:${self:provider.region}:872242893131:${opt:stage, 'dev'}-retro-issue-slack-notify
 
 plugins:
   - serverless-webpack
   - serverless-offline
 
 custom:
-  # Log all events to CloudWatch
-  slack_enable_logging: true
-
-  # The path used to post Slack events to
-  slack_event_path: slack
-
-  # The path used to install the Slack App
-  slack_install_path: slack
-
-  # The path to redirect to after an install
-  slack_install_redirect: https://slack.com
-
   serverless-offline:
     port: 3001
   webpack:

@@ -1,5 +1,16 @@
 import { WebClient } from '@slack/web-api';
+import { verifyRequestSignature } from '@slack/events-api';
+
 const web = new WebClient(process.env.slack_bot_oauth_token);
+
+export const verifyWithEvent = function verifyWithEvent(event) {
+    verifyRequestSignature({
+        signingSecret: process.env.slack_signing_secret,
+        requestTimestamp: event.headers['X-Slack-Request-Timestamp'],
+        requestSignature: event.headers['X-Slack-Signature'],
+        body: event.body
+    })
+}
 
 export const getAllMembersIdFromSlack = async function getAllMembersIdFromSlack(channelId) {
     const botId = await getSlackBotId(channelId);
@@ -39,6 +50,7 @@ export const sendMessage = async function sendMessage(channelId, message) {
 }
 
 export default {
+    verifyWithEvent,
     getAllMembersIdFromSlack,
     getSlackBotId,
     getSlackUserInfo,

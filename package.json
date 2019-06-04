@@ -8,7 +8,8 @@
   "dependencies": {
     "@octokit/rest": "^16.27.3",
     "@slack/events-api": "^2.2.0",
-    "@slack/web-api": "^5.0.1"
+    "@slack/web-api": "^5.0.1",
+    "aws-sdk": "^2.467.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
